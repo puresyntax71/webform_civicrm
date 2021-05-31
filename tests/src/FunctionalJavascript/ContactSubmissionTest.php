@@ -325,11 +325,10 @@ final class ContactSubmissionTest extends WebformCivicrmTestBase {
       if (isset($contact_values[$field_group])) {
         $this->assertTrue(is_array($contact_values[$field_group]));
         $this->assertTrue(isset($contact_values[$field_group][0]));
-        $this->getSession()->getPage()->selectFieldOption('contact_1_number_of_' . $field_group, count($contact_values[$field_group][0]));
+        $this->getSession()->getPage()->selectFieldOption('contact_1_number_of_' . $field_group, count($contact_values[$field_group]));
         $this->assertSession()->assertWaitOnAjaxRequest();
         $this->htmlOutput();
         if (is_array($field_value_key)) {
-          var_dump($field_value_key);
           foreach ($field_value_key as $value_key) {
             $this->getSession()->getPage()->checkField("civicrm_1_contact_1_{$field_group}_{$value_key}");
             $this->assertSession()->checkboxChecked("civicrm_1_contact_1_{$field_group}_{$value_key}");
