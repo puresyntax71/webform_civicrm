@@ -394,7 +394,22 @@ final class ContactSubmissionTest extends WebformCivicrmTestBase {
           if (is_array($field_value_key)) {
             foreach ($field_value_key as $value_key) {
               if (isset($contact_values[$field_group][$key][$value_key])) {
-                $this->assertEquals($contact_values[$field_group][$key][$value_key], $result_entity[$value_key]);
+                switch ($value_key) {
+                  case 'state_province_id':
+                    $state = $this
+                      ->utils
+                      ->wf_civicrm_api('StateProvince', 'getvalue', [
+                        'return' => "abbreviation",
+                        'id' => $result_entity[$value_key],
+                      ]);
+
+                    $this->assertEquals($contact_values[$field_group][$key][$value_key], $state);
+                    break;
+
+                  default:
+                    $this->assertEquals($contact_values[$field_group][$key][$value_key], $result_entity[$value_key]);
+                    break;
+                }
               }
             }
           }
@@ -431,14 +446,14 @@ final class ContactSubmissionTest extends WebformCivicrmTestBase {
    *   The test data.
    */
   public function dataContactValues() {
-    // yield [
-    //   'Individual',
-    //   [
-    //     'contact' => [
-    //       'first_name' => 'Frederick',
-    //       'last_name' => 'Pabst',
-    //     ]
-    // ]];
+    yield [
+      'Individual',
+      [
+        'contact' => [
+          'first_name' => 'Frederick',
+          'last_name' => 'Pabst',
+        ]
+    ]];
     yield [
       'Individual',
       [
@@ -462,55 +477,55 @@ final class ContactSubmissionTest extends WebformCivicrmTestBase {
           ]
         ],
     ]];
-    // yield [
-    //   'Individual',
-    //   [
-    //     'contact' => [
-    //       'first_name' => 'Frederick',
-    //       'last_name' => 'Pabst',
-    //     ],
-    //     'website' => [
-    //       [
-    //         'url' => 'https://example.com',
-    //       ]
-    //     ],
-    // ]];
-    // yield [
-    //   'Individual',
-    //   [
-    //     'contact' => [
-    //       'first_name' => 'Frederick',
-    //       'last_name' => 'Pabst',
-    //     ],
-    //     'phone' => [
-    //       [
-    //         'phone' => '555-555-5555',
-    //       ]
-    //     ],
-    // ]];
-    // yield [
-    //   'Individual',
-    //   [
-    //     'contact' => [
-    //       'first_name' => 'Frederick',
-    //       'last_name' => 'Pabst',
-    //     ],
-    //     'email' => [
-    //       [
-    //         'email' => 'fred@example.com',
-    //       ]
-    //     ],
-    //     'website' => [
-    //       [
-    //         'url' => 'https://example.com',
-    //       ]
-    //     ],
-    //     'phone' => [
-    //       [
-    //         'phone' => '555-555-5555',
-    //       ]
-    //     ],
-    // ]];
+    yield [
+      'Individual',
+      [
+        'contact' => [
+          'first_name' => 'Frederick',
+          'last_name' => 'Pabst',
+        ],
+        'website' => [
+          [
+            'url' => 'https://example.com',
+          ]
+        ],
+    ]];
+    yield [
+      'Individual',
+      [
+        'contact' => [
+          'first_name' => 'Frederick',
+          'last_name' => 'Pabst',
+        ],
+        'phone' => [
+          [
+            'phone' => '555-555-5555',
+          ]
+        ],
+    ]];
+    yield [
+      'Individual',
+      [
+        'contact' => [
+          'first_name' => 'Frederick',
+          'last_name' => 'Pabst',
+        ],
+        'email' => [
+          [
+            'email' => 'fred@example.com',
+          ]
+        ],
+        'website' => [
+          [
+            'url' => 'https://example.com',
+          ]
+        ],
+        'phone' => [
+          [
+            'phone' => '555-555-5555',
+          ]
+        ],
+    ]];
   }
 
 }
