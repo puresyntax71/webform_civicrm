@@ -12,6 +12,17 @@ use Drupal\Core\Url;
 final class ContactSubmissionTest extends WebformCivicrmTestBase {
 
   /**
+   * {@inheritdoc}
+   */
+  protected function setUp() {
+    parent::setUp();
+    $this->utils->wf_civicrm_api('Extension', 'download', [
+      'key' => "com.aghstrategies.uscounties",
+    ]);
+    drupal_flush_all_caches();
+  }
+
+  /**
    * Create 5 contacts and a group.
    * Add 4 contacts to the group.
    * $this->contacts is an array of contacts created.
@@ -295,7 +306,14 @@ final class ContactSubmissionTest extends WebformCivicrmTestBase {
 
     // @see wf_crm_location_fields().
     $configurable_contact_field_groups = [
-      'address' => 'address',
+      'address' => [
+        'street_address',
+        'city',
+        'postal_code',
+        'county_id',
+        'country_id',
+        'state_province_id',
+      ],
       'email' => 'email',
       'website' => 'url',
       'phone' => 'phone',
@@ -310,7 +328,16 @@ final class ContactSubmissionTest extends WebformCivicrmTestBase {
         $this->getSession()->getPage()->selectFieldOption('contact_1_number_of_' . $field_group, count($contact_values[$field_group][0]));
         $this->assertSession()->assertWaitOnAjaxRequest();
         $this->htmlOutput();
-        $this->assertSession()->checkboxChecked("civicrm_1_contact_1_{$field_group}_{$field_value_key}");
+        if (is_array($field_value_key)) {
+          var_dump($field_value_key);
+          foreach ($field_value_key as $value_key) {
+            $this->getSession()->getPage()->checkField("civicrm_1_contact_1_{$field_group}_{$value_key}");
+            $this->assertSession()->checkboxChecked("civicrm_1_contact_1_{$field_group}_{$value_key}");
+          }
+        }
+        else {
+          $this->assertSession()->checkboxChecked("civicrm_1_contact_1_{$field_group}_{$field_value_key}");
+        }
       }
     }
 
@@ -327,6 +354,7 @@ final class ContactSubmissionTest extends WebformCivicrmTestBase {
           foreach ($field_value as $key => $value) {
             $selector = "civicrm_1_contact_1_{$entity_type}_{$key}";
             $this->getSession()->getPage()->fillField($selector, $value);
+            $this->assertSession()->assertWaitOnAjaxRequest();
           }
         }
         else {
@@ -364,7 +392,16 @@ final class ContactSubmissionTest extends WebformCivicrmTestBase {
         ]);
         $this->assertEquals(count($contact_values[$field_group]), $api_result['count']);
         foreach ($api_result['values'] as $key => $result_entity) {
-          $this->assertEquals($contact_values[$field_group][$key][$field_value_key], $result_entity[$field_value_key]);
+          if (is_array($field_value_key)) {
+            foreach ($field_value_key as $value_key) {
+              if (isset($contact_values[$field_group][$key][$value_key])) {
+                $this->assertEquals($contact_values[$field_group][$key][$value_key], $result_entity[$value_key]);
+              }
+            }
+          }
+          elseif (isset($contact_values[$field_group][$key][$field_value_key])) {
+            $this->assertEquals($contact_values[$field_group][$key][$field_value_key], $result_entity[$field_value_key]);
+          }
         }
       }
     }
@@ -395,53 +432,14 @@ final class ContactSubmissionTest extends WebformCivicrmTestBase {
    *   The test data.
    */
   public function dataContactValues() {
-    yield [
-      'Individual',
-      [
-        'contact' => [
-          'first_name' => 'Frederick',
-          'last_name' => 'Pabst',
-        ]
-    ]];
-    yield [
-      'Individual',
-      [
-        'contact' => [
-          'first_name' => 'Frederick',
-          'last_name' => 'Pabst',
-        ],
-        'email' => [
-          [
-            'email' => 'fred@example.com',
-          ]
-        ],
-    ]];
-    yield [
-      'Individual',
-      [
-        'contact' => [
-          'first_name' => 'Frederick',
-          'last_name' => 'Pabst',
-        ],
-        'website' => [
-          [
-            'url' => 'https://example.com',
-          ]
-        ],
-    ]];
-    yield [
-      'Individual',
-      [
-        'contact' => [
-          'first_name' => 'Frederick',
-          'last_name' => 'Pabst',
-        ],
-        'phone' => [
-          [
-            'phone' => '555-555-5555',
-          ]
-        ],
-    ]];
+    // yield [
+    //   'Individual',
+    //   [
+    //     'contact' => [
+    //       'first_name' => 'Frederick',
+    //       'last_name' => 'Pabst',
+    //     ]
+    // ]];
     yield [
       'Individual',
       [
@@ -454,17 +452,66 @@ final class ContactSubmissionTest extends WebformCivicrmTestBase {
             'email' => 'fred@example.com',
           ]
         ],
-        'website' => [
+        'address' => [
           [
-            'url' => 'https://example.com',
-          ]
-        ],
-        'phone' => [
-          [
-            'phone' => '555-555-5555',
+            'street_address' => 'Test',
+            'city' => 'Adamsville',
+            'postal_code' => '35005',
+            'country_id' => '1228',
+            'state_province_id' => 'AL',
+            'county_id' => '7',
           ]
         ],
     ]];
+    // yield [
+    //   'Individual',
+    //   [
+    //     'contact' => [
+    //       'first_name' => 'Frederick',
+    //       'last_name' => 'Pabst',
+    //     ],
+    //     'website' => [
+    //       [
+    //         'url' => 'https://example.com',
+    //       ]
+    //     ],
+    // ]];
+    // yield [
+    //   'Individual',
+    //   [
+    //     'contact' => [
+    //       'first_name' => 'Frederick',
+    //       'last_name' => 'Pabst',
+    //     ],
+    //     'phone' => [
+    //       [
+    //         'phone' => '555-555-5555',
+    //       ]
+    //     ],
+    // ]];
+    // yield [
+    //   'Individual',
+    //   [
+    //     'contact' => [
+    //       'first_name' => 'Frederick',
+    //       'last_name' => 'Pabst',
+    //     ],
+    //     'email' => [
+    //       [
+    //         'email' => 'fred@example.com',
+    //       ]
+    //     ],
+    //     'website' => [
+    //       [
+    //         'url' => 'https://example.com',
+    //       ]
+    //     ],
+    //     'phone' => [
+    //       [
+    //         'phone' => '555-555-5555',
+    //       ]
+    //     ],
+    // ]];
   }
 
 }
