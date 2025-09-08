@@ -1991,7 +1991,11 @@ class AdminForm implements AdminFormInterface {
           $elements = $this->webform->getElementsDecodedAndFlattened();
           $component = $elements[$enabled[$key]];
           $component = WebformArrayHelper::removePrefix($component);
-          $component['value'] = $val;
+
+          if ($field['name'] != 'Payment Processor Mode') {
+            $component['value'] = $val;
+          }
+
           $enabled[$key] = $component;
         }
         else {
@@ -2324,7 +2328,9 @@ class AdminForm implements AdminFormInterface {
     }
     // For hidden+select fields such as contribution_page
     if ($field['type'] == 'hidden' && !empty($field['expose_list']) && !empty($settings[$field['form_key']])) {
-      $field['value'] = $settings[$field['form_key']];
+      if (!($table == 'contribution' && $name == 'is_test')) {
+        $field['value'] = $settings[$field['form_key']];
+      }
     }
     if (!empty($field['set']) && $field['set'] == 'billing_1_number_of_billing') {
       $ent = 'billing_1_number_of_billing';

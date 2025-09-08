@@ -713,8 +713,6 @@ class Fields implements FieldsInterface {
           'name' => t('Payment Processor Mode'),
           'type' => 'hidden',
           'expose_list' => TRUE,
-          'value' => 0,
-          'weight' => 9996,
         ];
         $fields['contribution_note'] = [
           'name' => t('Contribution Note'),
